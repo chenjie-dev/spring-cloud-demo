@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Cloud Demo - API测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .section-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .section-content {
+            padding: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .success {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        
+        .error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .status {
+            text-align: center;
+            padding: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .status-item {
+            display: inline-block;
+            margin: 0 15px;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .status-ok {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Spring Cloud Demo</h1>
+            <p>微服务架构演示 - API测试界面</p>
+        </div>
+        
+        <div class="content">
+            <!-- 服务状态检查 -->
+            <div class="status">
+                <h3>服务状态检查</h3>
+                <div id="serviceStatus"></div>
+            </div>
+            
+            <div class="grid">
+                <!-- 用户服务 -->
+                <div class="section">
+                    <div class="section-header">👤 用户服务</div>
+                    <div class="section-content">
+                        <div class="form-group">
+                            <label>用户名:</label>
+                            <input type="text" id="username" placeholder="请输入用户名">
+                        </div>
+                        <div class="form-group">
+                            <label>邮箱:</label>
+                            <input type="email" id="email" placeholder="请输入邮箱">
+                        </div>
+                        <div class="form-group">
+                            <label>电话:</label>
+                            <input type="text" id="phone" placeholder="请输入电话">
+                        </div>
+                        <div class="form-group">
+                            <label>地址:</label>
+                            <input type="text" id="address" placeholder="请输入地址">
+                        </div>
+                        <button onclick="createUser()">创建用户</button>
+                        <button onclick="getAllUsers()">获取所有用户</button>
+                        <button onclick="getUserById()">根据ID获取用户</button>
+                        <div class="form-group">
+                            <label>用户ID:</label>
+                            <input type="number" id="userId" placeholder="请输入用户ID">
+                        </div>
+                        <div id="userResult" class="result"></div>
+                    </div>
+                </div>
+                
+                <!-- 库存服务 -->
+                <div class="section">
+                    <div class="section-header">📦 库存服务</div>
+                    <div class="section-content">
+                        <div class="form-group">
+                            <label>商品名称:</label>
+                            <input type="text" id="productName" placeholder="请输入商品名称">
+                        </div>
+                        <div class="form-group">
+                            <label>商品描述:</label>
+                            <textarea id="productDescription" placeholder="请输入商品描述"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>价格:</label>
+                            <input type="number" id="productPrice" placeholder="请输入价格" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>库存:</label>
+                            <input type="number" id="productStock" placeholder="请输入库存数量">
+                        </div>
+                        <button onclick="createProduct()">创建商品</button>
+                        <button onclick="getAllProducts()">获取所有商品</button>
+                        <button onclick="getProductById()">根据ID获取商品</button>
+                        <div class="form-group">
+                            <label>商品ID:</label>
+                            <input type="number" id="productId" placeholder="请输入商品ID">
+                        </div>
+                        <div id="productResult" class="result"></div>
+                    </div>
+                </div>
+                
+                <!-- 订单服务 -->
+                <div class="section">
+                    <div class="section-header">🛒 订单服务</div>
+                    <div class="section-content">
+                        <div class="form-group">
+                            <label>用户ID:</label>
+                            <input type="number" id="orderUserId" placeholder="请输入用户ID">
+                        </div>
+                        <div class="form-group">
+                            <label>商品ID:</label>
+                            <input type="number" id="orderProductId" placeholder="请输入商品ID">
+                        </div>
+                        <div class="form-group">
+                            <label>数量:</label>
+                            <input type="number" id="orderQuantity" placeholder="请输入数量">
+                        </div>
+                        <button onclick="createOrder()">创建订单</button>
+                        <button onclick="getAllOrders()">获取所有订单</button>
+                        <button onclick="getOrderById()">根据ID获取订单</button>
+                        <button onclick="getOrdersByUserId()">获取用户订单</button>
+                        <div class="form-group">
+                            <label>订单ID:</label>
+                            <input type="number" id="orderId" placeholder="请输入订单ID">
+                        </div>
+                        <div class="form-group">
+                            <label>查询用户ID:</label>
+                            <input type="number" id="queryUserId" placeholder="请输入用户ID">
+                        </div>
+                        <div id="orderResult" class="result"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '';
+        
+        // 显示结果
+        function showResult(elementId, data, isSuccess = true) {
+            const element = document.getElementById(elementId);
+            element.textContent = JSON.stringify(data, null, 2);
+            element.className = `result ${isSuccess ? 'success' : 'error'}`;
+        }
+        
+        // 获取输入值
+        function getInputValue(id) {
+            return document.getElementById(id).value;
+        }
+        
+        // 检查服务状态
+        async function checkServiceStatus() {
+            const services = [
+                { name: '网关', url: '/actuator/health' },
+                { name: '用户服务', url: '/user-service/actuator/health' },
+                { name: '库存服务', url: '/inventory-service/actuator/health' },
+                { name: '订单服务', url: '/order-service/actuator/health' }
+            ];
+            
+            const statusDiv = document.getElementById('serviceStatus');
+            let statusHtml = '';
+            
+            for (const service of services) {
+                try {
+                    const response = await fetch(service.url);
+                    const data = await response.json();
+                    const isOk = data.status === 'UP';
+                    statusHtml += `<span class="status-item ${isOk ? 'status-ok' : 'status-error'}">${service.name}: ${isOk ? '✅ 正常' : '❌ 异常'}</span>`;
+                } catch (error) {
+                    statusHtml += `<span class="status-item status-error">${service.name}: ❌ 异常</span>`;
+                }
+            }
+            
+            statusDiv.innerHTML = statusHtml;
+        }
+        
+        // 用户服务API
+        async function createUser() {
+            try {
+                const userData = {
+                    username: getInputValue('username'),
+                    email: getInputValue('email'),
+                    phone: getInputValue('phone'),
+                    address: getInputValue('address')
+                };
+                
+                const response = await fetch('/user-service/users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+                
+                const result = await response.json();
+                showResult('userResult', result, result.code === 200);
+            } catch (error) {
+                showResult('userResult', { error: error.message }, false);
+            }
+        }
+        
+        async function getAllUsers() {
+            try {
+                const response = await fetch('/user-service/users');
+                const result = await response.json();
+                showResult('userResult', result, result.code === 200);
+            } catch (error) {
+                showResult('userResult', { error: error.message }, false);
+            }
+        }
+        
+        async function getUserById() {
+            try {
+                const userId = getInputValue('userId');
+                if (!userId) {
+                    showResult('userResult', { error: '请输入用户ID' }, false);
+                    return;
+                }
+                
+                const response = await fetch(`/user-service/users/${userId}`);
+                const result = await response.json();
+                showResult('userResult', result, result.code === 200);
+            } catch (error) {
+                showResult('userResult', { error: error.message }, false);
+            }
+        }
+        
+        // 库存服务API
+        async function createProduct() {
+            try {
+                const productData = {
+                    name: getInputValue('productName'),
+                    description: getInputValue('productDescription'),
+                    price: parseFloat(getInputValue('productPrice')),
+                    stock: parseInt(getInputValue('productStock'))
+                };
+                
+                const response = await fetch('/inventory-service/inventory/products', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(productData)
+                });
+                
+                const result = await response.json();
+                showResult('productResult', result, result.code === 200);
+            } catch (error) {
+                showResult('productResult', { error: error.message }, false);
+            }
+        }
+        
+        async function getAllProducts() {
+            try {
+                const response = await fetch('/inventory-service/inventory/products');
+                const result = await response.json();
+                showResult('productResult', result, result.code === 200);
+            } catch (error) {
+                showResult('productResult', { error: error.message }, false);
+            }
+        }
+        
+        async function getProductById() {
+            try {
+                const productId = getInputValue('productId');
+                if (!productId) {
+                    showResult('productResult', { error: '请输入商品ID' }, false);
+                    return;
+                }
+                
+                const response = await fetch(`/inventory-service/inventory/products/${productId}`);
+                const result = await response.json();
+                showResult('productResult', result, result.code === 200);
+            } catch (error) {
+                showResult('productResult', { error: error.message }, false);
+            }
+        }
+        
+        // 订单服务API
+        async function createOrder() {
+            try {
+                const orderData = {
+                    userId: parseInt(getInputValue('orderUserId')),
+                    productId: parseInt(getInputValue('orderProductId')),
+                    quantity: parseInt(getInputValue('orderQuantity'))
+                };
+                
+                const response = await fetch('/order-service/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderData)
+                });
+                
+                const result = await response.json();
+                showResult('orderResult', result, result.code === 200);
+            } catch (error) {
+                showResult('orderResult', { error: error.message }, false);
+            }
+        }
+        
+        async function getAllOrders() {
+            try {
+                const response = await fetch('/order-service/orders');
+                const result = await response.json();
+                showResult('orderResult', result, result.code === 200);
+            } catch (error) {
+                showResult('orderResult', { error: error.message }, false);
+            }
+        }
+        
+        async function getOrderById() {
+            try {
+                const orderId = getInputValue('orderId');
+                if (!orderId) {
+                    showResult('orderResult', { error: '请输入订单ID' }, false);
+                    return;
+                }
+                
+                const response = await fetch(`/order-service/orders/${orderId}`);
+                const result = await response.json();
+                showResult('orderResult', result, result.code === 200);
+            } catch (error) {
+                showResult('orderResult', { error: error.message }, false);
+            }
+        }
+        
+        async function getOrdersByUserId() {
+            try {
+                const userId = getInputValue('queryUserId');
+                if (!userId) {
+                    showResult('orderResult', { error: '请输入用户ID' }, false);
+                    return;
+                }
+                
+                const response = await fetch(`/order-service/orders/user/${userId}`);
+                const result = await response.json();
+                showResult('orderResult', result, result.code === 200);
+            } catch (error) {
+                showResult('orderResult', { error: error.message }, false);
+            }
+        }
+        
+        // 页面加载时检查服务状态
+        window.onload = function() {
+            checkServiceStatus();
+            // 每30秒检查一次服务状态
+            setInterval(checkServiceStatus, 30000);
+        };
+    </script>
+</body>
+</html> 
