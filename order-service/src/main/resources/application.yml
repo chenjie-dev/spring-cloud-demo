@@ -11,7 +11,7 @@ spring:
     password: root
   data:
     redis:
-      host: 106.52.6.69
+      host: localhost
       port: 6379
       database: 0
       timeout: 2000ms
@@ -20,7 +20,7 @@ spring:
           max-active: 8
           max-idle: 8
           min-idle: 0
-      password: chenjie2020
+      password: root
   kafka:
     bootstrap-servers: localhost:9092
     producer:
